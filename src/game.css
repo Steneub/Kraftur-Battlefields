@@ -1,0 +1,141 @@
+.player
+{
+	position: absolute;
+}
+
+.player-top
+{
+	top: 0px;
+	right: 0px;
+}
+
+.player-bottom
+{
+	bottom: 0px;
+	left: 0px;
+}
+
+.portrait
+{
+	border: 1px black solid;
+	width: 150px;
+	height: 150px;
+	border-radius: 50%;
+	margin: 15px;
+	position: absolute;
+}
+
+.player-top .portrait
+{
+	right:-180px;
+	top:-48px;
+}
+
+.player-bottom .portrait
+{
+	left:-180px;
+	bottom:-48px;
+}
+
+.bars
+{
+	border: 2px red dashed;
+	width:300px;
+	height:50px;
+	position: absolute;
+}
+
+.player-top .bars
+{	
+	right: -48px;
+	top:-48px;
+}
+
+.player-bottom .bars
+{	
+	left: -48px;
+	bottom:-48px;
+}
+
+#gameboard
+{	
+	height: 708px;
+	width: 	384px;
+	margin: 60px auto;
+	position: relative;
+	border: 3px orange solid;
+}
+
+#footer
+{
+	text-align: center;
+}
+
+.file
+{
+	width: 48px;
+}
+
+.file:hover
+{
+	background-color: lightblue;
+}
+
+.cell,
+.gutter
+{
+	width: 48px;
+	height: 48px;
+	position: absolute;
+}
+
+.del-highlight
+{
+	background-color: #FCC; /*light red*/
+}
+
+.playingfield
+{
+	border: 1px blue dotted;
+	position: absolute;
+	width: 384px;
+}
+
+.playingfield-top
+{
+	top: 0px;
+}
+
+.playingfield-bottom
+{
+	bottom: 0px;
+}
+
+.playingfield .cell
+{
+	border: 1px lightgray dotted;
+	position: absolute;
+}
+
+.playingfield .file
+{
+	display:inline-block;
+}
+
+
+
+#delete
+{
+	width:24px;
+	height: 24px;
+	
+	background-color: brown;
+	border: 1px solid orange;
+	padding: 2px;
+	margin: 2px;
+	display: none;
+	
+	position:absolute;
+	right: 0px;
+	bottom: 0px;
+}

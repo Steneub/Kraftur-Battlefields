@@ -1,0 +1,23 @@
+{
+	"GameID": #,
+	
+	"Messages": ["",""],
+	
+	"Events": [
+		{	
+			"Action": "",
+			"Ranks": [#,#],
+			"Positions": [#,#],
+			"Spaces": #
+		}
+	],
+	
+	"Matches": #,	
+	
+	"Boards": [
+		{
+			"Player": #, 
+			"State": [[][]]
+		}
+	]
+}

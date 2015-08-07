@@ -1,0 +1,59 @@
+SAMPLE EVENT LOG FOR JSON INTERPRETATION
+
+
+Events: {
+	Event: {
+		Action: "Delete",
+		Ranks: {
+			Rank: <Rank>
+		},
+		Positions: {
+			Position: <Position>
+		}
+	},
+	Event: {
+		Action: "Advance",
+		Ranks: {
+			Rank: <Rank>
+		},
+		Positions: {
+			Position: <Position>,
+			Position: <Position>
+		},
+		Spaces: 1
+		
+	},
+	Event: {
+		Action: "Match",
+		Type: "Basic-Attack"
+		Ranks: {
+			Rank: <Rank>
+		},
+		Positions: {
+			Position: <a>,
+			Position: <b>,
+			Position: <c>,
+		}
+	},
+	Event: {
+		Action: "Advance"
+		Ranks: {
+			Rank: <Rank>
+		},
+		Positions: {
+			Position: <a>,
+			Position: <b>,
+			Position: <c>,
+		},
+		Spaces: 2
+	}
+},
+CurrentState: {
+	Board: {
+	
+	
+	
+	}
+}
+
+

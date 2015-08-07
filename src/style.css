@@ -1,0 +1,39 @@
+#login
+{	
+	height: 708px;
+	width: 	384px;
+	margin: 60px auto;
+	position: relative;
+	border: 3px orange solid;
+}
+
+body {
+    margin:0px;
+}
+
+#Menu {
+    position: fixed;
+    top:0px;
+    z-index: 1000;
+
+    height: 2.5em;
+    background-color: darkslategray;
+    width: 100%;
+
+}
+
+#Content,
+#Footer {
+    border: 1px solid black;
+    margin: auto;
+    margin-top: 3em;
+    width:500px;
+}
+
+#Content {
+
+}
+
+#Footer {
+    text-align: center;
+}
