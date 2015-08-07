@@ -1,7 +1,6 @@
 $(function () {
 
-	var SQUARESIZE = 48;
-	//serverurl = "http://pie-hole.com/projects/clash/game.php";
+	var SQUARESIZE = 48;	
 	var serverurl = "game.php";
 
     //initialize gamespace with divs

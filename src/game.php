@@ -432,6 +432,7 @@ class GameState
         <?php
     }
 }
+
 switch ($_POST['action']) {
 
     case "spawnarmy":

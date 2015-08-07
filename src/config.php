@@ -1,6 +1,10 @@
 <?php
-//$MySQL_hostname	= "mysql.pie-hole.com";
-$MySQL_hostname	= "localhost:3306";
+
+$MySQL_hostname	= "mysql.pie-hole.com";
+if ($_SERVER['SERVER_ADDR'] == "::1") {
+	$MySQL_hostname	= "localhost:3306";
+}
+
 $MySQL_database = "kraftur";
 $MySQL_user	= "kraftur_user";
 $MySQL_userpw	= "gouranga";
