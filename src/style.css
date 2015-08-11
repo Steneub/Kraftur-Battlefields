@@ -22,6 +22,14 @@ body {
 
 }
 
+#Menu ul {
+    list-style-type: none;
+}
+
+#Menu ul li { 
+    display: inline;
+}
+
 #Content,
 #Footer {
     border: 1px solid black;

@@ -16,13 +16,26 @@
 <body>
 
     <?php
+        session_start();
         include_once('config.php');
+        include_once('user.php');
+        
+        if (isset($_SESSION['UserID'])) {
+            echo $_SESSION['UserID'];
+            $User = new User($_SESSION['UserID']);   
+        }
+        
     ?>
 
     <div id="Menu">
 
         <ul>
             <li><a href="?do=startgame">Start Game</a></li>
+            <?php 
+                if (isset($User)) {
+                    echo "<li>Hi, {$User->Name}</li>";
+                }
+            ?>  
         </ul>
 
     </div>
@@ -46,13 +59,23 @@
                 break;
 
             case "login":
-                $User = new User($_POST['username'], $_POST['password']);
-                $_SESSION['User'] = $User;
+                $User = new User();
+                $User->VerifyUser($_POST['Username'], $_POST['password']);
+                             
+                if (empty($User->Username)) {
+                    unset($User, $_SESSION['UserID']);
+                    echo '<pre>';
+                    print_r($User->Messages);
+                    echo '</pre>';
+                }
+                
+                $_GET['redirect'] = "index.php";                
                 break;
 
             default:
                 ?>
 
+<!--                
                 <div id="login">
                     <ul>
                         <li><a href="#tabs-1">Login</a></li>
@@ -103,6 +126,21 @@
                         </form>
                     </div>
                 </div>
+-->
+            <div id="login">
+                <form name="loginform" action="index.php?do=login" method="POST">
+                    <select name="Username">
+                        <?php 
+                            foreach (getAllUsers() as $UserID=>$UserName) {
+                                echo "<option value=\"{$UserID}\">{$UserName}</option>"; 
+                            }
+                        ?>
+                    </select>
+                    <input type="hidden" name="Password" value="qwerty"/>
+                    <input type="submit" value="Login"/>    
+                </form>                    
+            </div>
+                
             <?php
             break;
         }
