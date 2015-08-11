@@ -52,7 +52,7 @@ class GameState
 
             $this->Name = 'Test Game';
 
-            
+			$this->Events[] = Array("Type"=>"Banner Event", "Message"=>"It is Player's Turn!");			
 
             $this->GameID = $this->RegisterGame();
             $this->RecordInitialGameState();
@@ -84,9 +84,9 @@ class GameState
 		
 		global $handle, $MySQL_context;
 		$sql = "UPDATE {$MySQL_context}Game SET    			
-    			`CurrentState` = '{$CurrentState}'
+    			`CurrentState` = '".addslashes($CurrentState)."'
     			WHERE ID = {$this->GameID}";
-		
+				
 		if (!mysql_query($sql)) die(mysql_error($handle).$sql);
 		
 	}	
@@ -96,7 +96,7 @@ class GameState
         global $handle, $MySQL_context;
 
         $sql = "INSERT INTO {$MySQL_context}Game (`Name`, `Player1`, `Player2`)
-                VALUES ('".addslashes($this->Name)."', {$this->PlayerOne}, {$this->PlayerTwo});";
+                VALUES ('".addslashes($this->Name)."', '".addslashes($this->PlayerOne)."', '".addslashes($this->PlayerTwo)."');";
 
         if (!mysql_query($sql)) die(mysql_error($handle));
 
@@ -111,8 +111,8 @@ class GameState
 		$this->BuildCurrentState();
 
     	$sql = "UPDATE {$MySQL_context}Game SET
-    			`BeginState` = '{$this->CurrentState}',
-    			`CurrentState` = '{$this->CurrentState}'
+    			`BeginState` = '".addslashes($this->CurrentState)."',
+    			`CurrentState` = '".addslashes($this->CurrentState)."'
     			WHERE ID = {$this->GameID}";
 
         if (!mysql_query($sql)) die(mysql_error($handle).$sql);
@@ -128,6 +128,11 @@ class GameState
 					"Messages"=>$this->Messages, 
 					"Events"=>$this->Events, 
 					"Matches"=>$this->Matches,
+					"Moves"=>
+						Array(
+							"Used"=>$this->MovesUsed,
+							"Left"=>$this->MovesLeft
+						),						
 					"Boards"=>
 						Array(							
 							Array("PlayerID"=>$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['PlayerID'], "Player"=>TRUE,"State"=>$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State']),
@@ -411,6 +416,10 @@ class GameState
 
         <script type="text/javascript" src="game.js"></script>
         <link rel="stylesheet" href="game.css">
+		
+		<div id="announceContainer">
+			<div id="announce">placeholder text</div>
+		</div>
 
         <div id="gameboard">
             <div class="player player-top">

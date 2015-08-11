@@ -216,7 +216,7 @@ $(function () {
 
 	function fieldArmy() {
 		
-		//console.log(battlefieldData);
+		console.log(battlefieldData);
 		
         $( '.playingfield').each (function () {
             
@@ -275,7 +275,35 @@ $(function () {
 			});
 		});
 	}
-
+	
+	function processEvents()
+	{		
+		for (var i in battlefieldData.Events) {
+			switch (battlefieldData.Events[i].Type) {
+				case "Banner Event":
+				
+				//console.log(battlefieldData.Events[i].Message);
+				console.log('Set Text: "'+battlefieldData.Events[i].Message+'"');				
+				$( '#announce' )[0].innerHTML = battlefieldData.Events[i].Message;
+				
+				console.log('Show Banner'); 
+				$( '#announce' ).show("slide", {"direction": "right", "easing" : "easeOutQuart"}, 1000, callback);				
+				
+				
+				break;
+			}
+			
+		}
+	}
+	
+    function callback()
+	{
+		setTimeout(function() {
+        	$( "#announce" ).hide("slide", {"direction": "left", "easing" : "easeInQuart"}, 500);
+      	}, 1000 );
+    }
+	
+	processEvents();
     fieldArmy();
 
 });

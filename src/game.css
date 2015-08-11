@@ -66,6 +66,31 @@
 	border: 3px orange solid;
 }
 
+#announceContainer
+{
+	margin: 60px auto;
+	margin-top:354px;	
+	
+	position: relative;
+	
+	width: 100%;
+	height: 120px;
+	float: left;
+	
+	white-space: nowrap;
+	font-size: 3em;
+}
+
+#announce
+{
+    position: absolute;
+	display: none;
+    top: 25%;
+	width:100%;
+	z-index: 500;
+	background-color: teal;
+}
+
 #footer
 {
 	text-align: center;
@@ -121,8 +146,6 @@
 {
 	display:inline-block;
 }
-
-
 
 #delete
 {
