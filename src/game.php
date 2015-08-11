@@ -50,6 +50,9 @@ class GameState
             $this->SpawnArmy();
 			$this->CurrentState['Boards'][$this->BoardStateOpponentIndex]['State'] = $this->Field;
 
+			$this->CurrentState['Moves']['Used'] = 0;
+			$this->CurrentState['Moves']['Left'] = 3;
+
             $this->Name = 'Test Game';
 
 			$this->Events[] = Array("Type"=>"Banner Event", "Message"=>"It is Player's Turn!");			
@@ -130,8 +133,8 @@ class GameState
 					"Matches"=>$this->Matches,
 					"Moves"=>
 						Array(
-							"Used"=>$this->MovesUsed,
-							"Left"=>$this->MovesLeft
+							"Used"=>$this->CurrentState['Moves']['Used'],
+							"Left"=>$this->CurrentState['Moves']['Left']
 						),						
 					"Boards"=>
 						Array(							
@@ -213,18 +216,25 @@ class GameState
 
 		if ($this->EligibleToBeDeleted($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank])) {
 			unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]);
+			
+			$this->CurrentState['Moves']['Used']++;
+			$this->CurrentState['Moves']['Left']--;
+			
 		}
 	}
 
 	function MoveItem($Source, $Target)
 	{
-			if (!is_array($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target])) {
+		if (!is_array($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target])) {
 			$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target] = Array();
 		}
 
 		array_push(
 			$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target],
 			array_pop($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Source]));
+			
+		$this->CurrentState['Moves']['Used']++;
+		$this->CurrentState['Moves']['Left']--;
 	}
 
 	/**
@@ -466,7 +476,7 @@ switch ($_POST['action']) {
         break;
 
 
-    //TODO: move and delete are stupid-similar. Move this into a single class where they can be handled
+    //TODO: move and delete are stupid-similar. Move this into a single something where they can be handled
     case "move":
 	case "delete":
 	
@@ -478,7 +488,7 @@ switch ($_POST['action']) {
         do {
             $Game->SortField();
             $NumMatches = $Game->DetectAndManageMatches();
-            $Game->Matches += $NumMatches;
+            $Game->Matches += $NumMatches;			
         } while ($NumMatches > 0);
 
 		$Game->BuildCurrentState();

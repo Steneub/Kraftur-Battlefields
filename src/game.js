@@ -67,10 +67,11 @@ $(function () {
 
 					console.log('Move Complete!');
 					console.log(data);
+					
+					battlefieldData = data;
 
-					clearField();
-
-                    battlefieldData = data;
+					updateMovesDisplay(battlefieldData.Moves.Left);
+					clearField();                    
 					fieldArmy();
 					return;
 				});
@@ -96,7 +97,7 @@ $(function () {
 			gutter.fileSource = clickObject.file;
 			
 			$( '.gutter', $( '.playingfield-bottom .file')[clickObject.file] )[0].innerHTML = '<img src="img/armies/debug/'+gutter.Color+'.gif"/>';			
-			
+						
 			clearField();
 			fieldArmy();
 		
@@ -206,17 +207,21 @@ $(function () {
 
 			battlefieldData = data;
 
+			updateMovesDisplay(battlefieldData.Moves.Left);
 			clearField();
 			fieldArmy();
-
 
 		});
 
 	});
+	
+	function updateMovesDisplay(numMoves) {
+		$( '.portrait', '.player-bottom')[0].innerHTML = numMoves; 		
+	}
 
 	function fieldArmy() {
 		
-		console.log(battlefieldData);
+		//console.log(battlefieldData);
 		
         $( '.playingfield').each (function () {
             
@@ -280,19 +285,11 @@ $(function () {
 	{		
 		for (var i in battlefieldData.Events) {
 			switch (battlefieldData.Events[i].Type) {
-				case "Banner Event":
-				
-				//console.log(battlefieldData.Events[i].Message);
-				console.log('Set Text: "'+battlefieldData.Events[i].Message+'"');				
+				case "Banner Event":								
 				$( '#announce' )[0].innerHTML = battlefieldData.Events[i].Message;
-				
-				console.log('Show Banner'); 
 				$( '#announce' ).show("slide", {"direction": "right", "easing" : "easeOutQuart"}, 1000, callback);				
-				
-				
 				break;
-			}
-			
+			}			
 		}
 	}
 	
@@ -303,6 +300,7 @@ $(function () {
       	}, 1000 );
     }
 	
+	updateMovesDisplay(battlefieldData.Moves.Left);
 	processEvents();
     fieldArmy();
 
