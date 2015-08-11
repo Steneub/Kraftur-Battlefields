@@ -468,8 +468,12 @@ switch ($_POST['action']) {
 
     //TODO: move and delete are stupid-similar. Move this into a single class where they can be handled
     case "move":
+	case "delete":
+	
         $Game = new GameState($_POST['GameID']);
-		$Game->MoveItem($_POST['fileSource'], $_POST['fileTarget']);
+		
+		if ($_POST['action'] == "move")		$Game->MoveItem($_POST['fileSource'], $_POST['fileTarget']);
+		if ($_POST['action'] == "delete")	$Game->DeleteItem($_POST['file'], $_POST['rank']);
 
         do {
             $Game->SortField();
@@ -481,23 +485,7 @@ switch ($_POST['action']) {
 		$Game->UpdateGameState($Game->CurrentState);
         echo $Game->CurrentState;
 
-        break;
-
-    case "delete":
-        $Game = new GameState($_POST['GameID']);
-        $Game->DeleteItem($_POST['file'], $_POST['rank']);        
-
-        do {
-            $Game->SortField();
-            $NumMatches = $Game->DetectAndManageMatches();
-            $Game->Matches += $NumMatches;
-        } while ($NumMatches > 0);
-
-		$GameState = $Game->BuildCurrentState();
-		$Game->UpdateGameState($Game->CurrentState);
-        echo $Game->CurrentState;
-
-        break;
+        break; 
 }
 
 ?>
