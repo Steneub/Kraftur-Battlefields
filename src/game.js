@@ -114,12 +114,17 @@ $(function () {
 		if ($(file).parent().hasClass('playingfield-top')) player = 'Opponent';
 		if ($(file).parent().hasClass('playingfield-bottom')) player = 'Player';
 		
-		for (var i in battlefieldData.Boards) {						
-			if (player == 'Player' && battlefieldData.Boards[i].Player == true || 
-				player == 'Opponent' && battlefieldData.Boards[i].Player == false) {
-				var index = i; 							
+		for (var i in battlefieldData.Boards) {	
+			
+			//console.log(player, i, battlefieldData.Boards[i].IsMe);
+			
+			if ((player == 'Player' && battlefieldData.Boards[i].IsMe) || 
+				(player == 'Opponent' && !battlefieldData.Boards[i].IsMe)) {
+					var index = i; 							
 			}						
-		}	
+		}		
+		
+		
 
 		clickObject = {		
 			player: index,
@@ -163,12 +168,17 @@ $(function () {
 		if ($(file).parent().hasClass('playingfield-top')) player = 'Opponent';
 		if ($(file).parent().hasClass('playingfield-bottom')) player = 'Player';
 		
-		for (var i in battlefieldData.Boards) {						
-			if (player == 'Player' && battlefieldData.Boards[i].Player == true || 
-				player == 'Opponent' && battlefieldData.Boards[i].Player == false) {
-				var index = i; 							
+		for (var i in battlefieldData.Boards) {	
+			
+			//console.log(player, i, battlefieldData.Boards[i].IsMe);
+			
+			if ((player == 'Player' && battlefieldData.Boards[i].IsMe) || 
+				(player == 'Opponent' && !battlefieldData.Boards[i].IsMe)) {
+					var index = i; 							
 			}						
 		}	
+
+		console.log(index);
 
 		clickObject = {		
 			player: index,
@@ -221,7 +231,7 @@ $(function () {
 
 	function fieldArmy() {
 		
-		//console.log(battlefieldData);
+		console.log(battlefieldData);
 		
         $( '.playingfield').each (function () {
             
@@ -229,13 +239,13 @@ $(function () {
             if ($(this).hasClass('playingfield-bottom')) player = 'Player';
             if ($(this).hasClass('playingfield-top')) player = 'Opponent';
 			
-			for (var i in battlefieldData.Boards) {						
-				if (player == 'Player' && battlefieldData.Boards[i].Player == true || 
-					player == 'Opponent' && battlefieldData.Boards[i].Player == false) {
+			for (var i in battlefieldData.Boards) {	
+				if ((player == 'Player' && battlefieldData.Boards[i].IsMe) || 
+					(player == 'Opponent' && !battlefieldData.Boards[i].IsMe)) {
 						var index = i; 							
 				}						
 			}			
-
+		
             $( '.file', $( this ) ).each( function () {
 
                 var file = $(this).index();

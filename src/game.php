@@ -13,10 +13,19 @@ class GameState
             $this->GameID = $GameID;
 			$this->CurrentState = mysql_fetch_assoc($this->GetGameState());
 			$this->CurrentState = json_decode($this->CurrentState['CurrentState'], true);
+						
+			$this->Moves = $this->CurrentState['Moves'];			
 			
+			//echo '<pre>';
+			//print_r($this->CurrentState);
+			//echo '</pre>';
+						
 			$i = 0;
-			foreach($this->CurrentState['Boards'] as $Board) {		
-				if ($Board['PlayerID'] == $_POST['player']) {
+			foreach($this->CurrentState['Boards'] as $Board) {	
+			
+				$this->Boards[] = $Board;
+			
+				if ($Board['IsMe']) {
 					$this->BoardStatePlayerIndex = $i;
 				}
 				else {
@@ -31,36 +40,44 @@ class GameState
 		}
 		else
 		{
-			$this->Messages[] = "Building fresh army";
-
-			$this->BoardStatePlayerIndex = 0;
-			$this->BoardStateOpponentIndex = 1;
-			
-			$this->PlayerOne = 1;
-            $this->PlayerTwo = 2;
-			
-			$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['PlayerID'] = $this->PlayerOne = 1;
-			$this->CurrentState['Boards'][$this->BoardStateOpponentIndex]['PlayerID'] = $this->PlayerTwo = 2;			
-
-            $this->BuildArmyDeck();
-            $this->SpawnArmy();
-            $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'] = $this->Field;
-
-            $this->BuildArmyDeck();
-            $this->SpawnArmy();
-			$this->CurrentState['Boards'][$this->BoardStateOpponentIndex]['State'] = $this->Field;
-
-			$this->CurrentState['Moves']['Used'] = 0;
-			$this->CurrentState['Moves']['Left'] = 3;
-
-            $this->Name = 'Test Game';
-
-			$this->Events[] = Array("Type"=>"Banner Event", "Message"=>"It is Player's Turn!");			
-
-            $this->GameID = $this->RegisterGame();
-            $this->RecordInitialGameState();
-
+			$this->CreateFreshGame();
 		}
+	}
+	
+	function CreateFreshGame() {
+		
+		$this->Messages[] = "Building fresh game";
+		global $LoggedInUser;
+		
+		$Players = Array(1,2); //TODO - Make this dynamically loaded. For right now it's always ID 1 and 2
+		
+		foreach($Players as $PlayerID) {
+			
+			$this->BuildArmyDeck();
+            $this->SpawnArmy();
+						
+			$this->Boards[] = Array(
+				"PlayerID"=>$PlayerID,
+				"CurrentPlayer"=> $PlayerID == 1,
+				"IsMe"=> $PlayerID == $LoggedInUser->UserID,
+				"State"=>$this->Field); //TODO - randomize the starting player 
+		}
+		
+		//echo '<pre>';
+		//print_r($this->Boards);
+		//echo '</pre>';		
+		
+		$this->Moves['Used'] = 0;
+		$this->Moves['Left'] = 3;
+
+        $this->Name = 'Test Game'; //TODO - game creation form
+		
+		$this->Events[] = Array("Type"=>"Banner Event", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
+		
+		$this->GameID = $this->RegisterGame();
+		$this->BuildCurrentState();
+        $this->RecordInitialGameState();					
+		
 	}
 
     function InitializeGameState() {
@@ -133,14 +150,10 @@ class GameState
 					"Matches"=>$this->Matches,
 					"Moves"=>
 						Array(
-							"Used"=>$this->CurrentState['Moves']['Used'],
-							"Left"=>$this->CurrentState['Moves']['Left']
+							"Used"=>$this->Moves['Used'],
+							"Left"=>$this->Moves['Left']
 						),						
-					"Boards"=>
-						Array(							
-							Array("PlayerID"=>$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['PlayerID'], "Player"=>TRUE,"State"=>$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State']),
-							Array("PlayerID"=>$this->CurrentState['Boards'][$this->BoardStateOpponentIndex]['PlayerID'], "Player"=>FALSE,"State"=>$this->CurrentState['Boards'][$this->BoardStateOpponentIndex]['State'])
-						)
+					"Boards"=>$this->Boards
 				)
 			);
 	}
@@ -214,27 +227,29 @@ class GameState
 	{
 		$this->Messages[] = 'Checking deletion of ('.$File.','.$Rank.')';
 
-		if ($this->EligibleToBeDeleted($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank])) {
-			unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]);
+		if ($this->EligibleToBeDeleted($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank])) {
+			unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]);
 			
-			$this->CurrentState['Moves']['Used']++;
-			$this->CurrentState['Moves']['Left']--;
+			$this->Moves['Used']++;
+			$this->Moves['Left']--;
 			
 		}
 	}
 
 	function MoveItem($Source, $Target)
 	{
-		if (!is_array($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target])) {
-			$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target] = Array();
+		//print_r($this->Boards[$this->BoardStatePlayerIndex]['State']);
+		
+		if (!is_array($this->Boards[$this->BoardStatePlayerIndex]['State'][$Target])) {
+			$this->Boards[$this->BoardStatePlayerIndex]['State'][$Target] = Array();
 		}
 
 		array_push(
-			$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Target],
-			array_pop($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$Source]));
+			$this->Boards[$this->BoardStatePlayerIndex]['State'][$Target],
+			array_pop($this->Boards[$this->BoardStatePlayerIndex]['State'][$Source]));
 			
-		$this->CurrentState['Moves']['Used']++;
-		$this->CurrentState['Moves']['Left']--;
+		$this->Moves['Used']++;
+		$this->Moves['Left']--;
 	}
 
 	/**
@@ -249,9 +264,9 @@ class GameState
 		$this->Sorts++;
 
 		//echo "Index: {$this->BoardStatePlayerIndex}\n";
-		//print_r($this->CurrentState['Boards']);
+		//print_r($this->Boards);
 
-		foreach ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'] as $FileKey => &$FileArray) {
+		foreach ($this->Boards[$this->BoardStatePlayerIndex]['State'] as $FileKey => &$FileArray) {
 
 			//remove blanks
 			$FileArray = array_values($FileArray);
@@ -288,13 +303,13 @@ class GameState
 	{
 		$Matches = 0;
 
-		foreach ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'] as $File=>&$FileArray)
+		foreach ($this->Boards[$this->BoardStatePlayerIndex]['State'] as $File=>&$FileArray)
 		{
 			foreach ($FileArray as $Rank=>&$RankArray)
 			{
 				//$this->Messages[] = 'At ('.$File.', '.$Rank.')';
 
-				if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] == 'Unit')
+				if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] == 'Unit')
 				{
 
 					//$this->Messages[] = 'File '.$File.' has '.count($FileArray).' ranks in it. If we\'re on rank '.$Rank.', then there are '.(count($FileArray) - $Rank).' ranks to check.';
@@ -304,25 +319,25 @@ class GameState
 					{
 
 						//$this->Messages[] = 'Checking File '.$File.' at Rank '.$Rank.' for charge matches.';
-						//$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank];
-						//$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+1];
-						//$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+2];
+						//$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank];
+						//$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+1];
+						//$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+2];
 
-						if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'] == $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Color'] &&
-							$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Color'] == $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+2]['Color'] &&
+						if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'] == $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Color'] &&
+							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Color'] == $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+2]['Color'] &&
 
-							!$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'] &&
-							!$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Attack'] &&
-							!$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+2]['Attack']
+							!$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'] &&
+							!$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Attack'] &&
+							!$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+2]['Attack']
 							)
 						{
 							//attack match!
-							$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'].' charge match at ('.$File.','.$Rank.')';
+							$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'].' charge match at ('.$File.','.$Rank.')';
 							$Matches++;
 
-							$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'] = TRUE;
-							$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Attack'] = TRUE;
-							$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank+2]['Attack'] = TRUE;
+							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'] = TRUE;
+							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+1]['Attack'] = TRUE;
+							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank+2]['Attack'] = TRUE;
 						}
 
 					}
@@ -332,7 +347,7 @@ class GameState
 					$DefendMatches = 1;
 					for ($f = ($File+1); $f < 8; $f++)
 					{
-						if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'] == $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$f][$Rank]['Color'] && isset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$f][$Rank]))
+						if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'] == $this->Boards[$this->BoardStatePlayerIndex]['State'][$f][$Rank]['Color'] && isset($this->Boards[$this->BoardStatePlayerIndex]['State'][$f][$Rank]))
 						{
 							$DefendMatches++;
 						}
@@ -345,14 +360,14 @@ class GameState
 
 						for ($r = 0; $r < $DefendMatches; $r++)
 						{
-							$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File + $r][$Rank]['Wall'] = TRUE;
+							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File + $r][$Rank]['Wall'] = TRUE;
 						}
 
 						$Matches++;
 					}
 
 					//Identify Multimatch units
-					if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall'] && $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'])
+					if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall'] && $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'])
 					{
 						$this->Messages[] = 'Multimatch at ('.$File.','.$Rank.')';
 						$Multimatch[$File][] = $Rank;
@@ -368,10 +383,10 @@ class GameState
 			$offset = 0;
 			foreach ($MultiMatches as $MatchRank)
 			{
-				array_splice($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File], $MatchRank+$offset, 0, array($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$MatchRank]));
+				array_splice($this->Boards[$this->BoardStatePlayerIndex]['State'][$File], $MatchRank+$offset, 0, array($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$MatchRank]));
 
-				unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$MatchRank+$offset]['Attack']);
-				unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$MatchRank+$offset+1]['Wall']);
+				unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$MatchRank+$offset]['Attack']);
+				unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$MatchRank+$offset+1]['Wall']);
 
 				$offset++;
 			}
@@ -379,40 +394,40 @@ class GameState
 
 
 		//Change unit types for different matches
-		foreach ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'] as $File=>&$FileArray)
+		foreach ($this->Boards[$this->BoardStatePlayerIndex]['State'] as $File=>&$FileArray)
 		{
 			foreach ($FileArray as $Rank=>&$RankArray)
 			{
 
-				if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall'] && $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'])
+				if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall'] && $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'])
 				{
-					unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall']);
+					unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall']);
 
 					//$this->Messages[] = 'Before Splice';
-					//$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File];
+					//$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File];
 
 					//$this->Messages[] = 'Splicing in';
-					//$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank];
+					//$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank];
 
-					array_splice($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File], $Rank, 0, array($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]));
+					array_splice($this->Boards[$this->BoardStatePlayerIndex]['State'][$File], $Rank, 0, array($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]));
 
 					//$this->Messages[] = 'After Splice';
-					//$this->Messages[] = $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File];
+					//$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File];
 
-					$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] = 'Wall';
-					unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'], $this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack']);
+					$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] = 'Wall';
+					unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'], $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack']);
 
 				}
-				else if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall'])
+				else if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall'])
 				{
-					unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall']);
-					$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] = 'Wall';
-					unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color']);
+					unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Wall']);
+					$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] = 'Wall';
+					unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color']);
 				}
-				else if ($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'])
+				else if ($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'])
 				{
-					unset($this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack']);
-					$this->CurrentState['Boards'][$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] = 'Charge';
+					unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack']);
+					$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Type'] = 'Charge';
 				}
 			}
 		}

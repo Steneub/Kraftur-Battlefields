@@ -15,8 +15,17 @@
 	"Matches": #,	
 	
 	"Boards": [
+		
 		{
-			"Player": #, 
+			"PlayerID": #,
+			"CurrentPlayer": T/F,
+			"IsMe": T/F,			 
+			"State": [[][]]
+		},
+		{
+			"PlayerID": #,
+			"CurrentPlayer": T/F,
+			"IsMe": T/F,			 
 			"State": [[][]]
 		}
 	]

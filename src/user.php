@@ -5,7 +5,7 @@ class User
 		if (!empty($UserID)) {
 			
 			$this->UserID = $UserID;
-			$this->UserInfo = $this->GetUserInfo();
+			$this->UserInfo = $this->GetUserInfo($this->UserID);
 			
 			$this->Name = $this->UserInfo['Name']; 
 		}
@@ -38,9 +38,9 @@ class User
 		return $row['ID'];
 	}
 	
-	function GetUserInfo() {
+	public static function GetUserInfo($UserID) {
 		global $handle, $MySQL_context;
-    	$sql = "SELECT * FROM {$MySQL_context}Users WHERE ID={$this->UserID}";
+    	$sql = "SELECT `ID`, `Name` FROM {$MySQL_context}Users WHERE ID={$UserID}";
 		if (!$sql_result = mysql_query($sql,$handle)) die(mysql_error($handle));
 		return mysql_fetch_assoc($sql_result);				
 						

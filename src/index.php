@@ -22,7 +22,7 @@
         
         if (isset($_SESSION['UserID'])) {
             echo $_SESSION['UserID'];
-            $User = new User($_SESSION['UserID']);   
+            $LoggedInUser = new User($_SESSION['UserID']);   
         }
         
     ?>
@@ -32,8 +32,8 @@
         <ul>
             <li><a href="?do=startgame">Start Game</a></li>
             <?php 
-                if (isset($User)) {
-                    echo "<li>Hi, {$User->Name}</li>";
+                if (isset($LoggedInUser)) {
+                    echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}!</li>";
                 }
             ?>  
         </ul>
@@ -59,13 +59,14 @@
                 break;
 
             case "login":
-                $User = new User();
-                $User->VerifyUser($_POST['Username'], $_POST['password']);
+                include_once('user.php');
+                $LoggedInUser = new User();
+                $LoggedInUser->VerifyUser($_POST['Username'], $_POST['password']);
                              
-                if (empty($User->Username)) {
-                    unset($User, $_SESSION['UserID']);
+                if (empty($LoggedInUser-->Username)) {
+                    unset($LoggedInUser, $_SESSION['UserID']);
                     echo '<pre>';
-                    print_r($User->Messages);
+                    print_r($LoggedInUser->Messages);
                     echo '</pre>';
                 }
                 
