@@ -14,29 +14,23 @@ class GameState
 			$this->CurrentState = mysql_fetch_assoc($this->GetGameState());
 			$this->CurrentState = json_decode($this->CurrentState['CurrentState'], true);
 						
-			$this->Moves = $this->CurrentState['Moves'];			
+			$this->Moves = $this->CurrentState['Moves'];
+			$this->Boards = $this->CurrentState['Boards'];
 			
-			//echo '<pre>';
-			//print_r($this->CurrentState);
-			//echo '</pre>';
-						
-			$i = 0;
-			foreach($this->CurrentState['Boards'] as $Board) {	
-			
-				$this->Boards[] = $Board;
-			
-				if ($Board['IsMe']) {
-					$this->BoardStatePlayerIndex = $i;
+			global $LoggedInUser;
+				
+			foreach($this->Boards as $BoardIndex => &$BoardData) {	
+				
+				if ($BoardData['PlayerID'] == $LoggedInUser->UserID) {
+					$BoardData['IsMe'] = TRUE;
+					$this->BoardStatePlayerIndex = $BoardIndex;
 				}
 				else {
-					$i++;	
-					$this->BoardStateOpponentIndex = $i;
-				}		
+					$BoardData['IsMe'] = FALSE;
+					$this->BoardStateOpponentIndex = $BoardIndex;
+				}
 			}
-			
-			//echo "Player: {$this->BoardStatePlayerIndex}\n";
-			//echo "Opponent: {$this->BoardStateOpponentIndex}\n";
-						
+				
 		}
 		else
 		{
@@ -61,11 +55,7 @@ class GameState
 				"CurrentPlayer"=> $PlayerID == 1,
 				"IsMe"=> $PlayerID == $LoggedInUser->UserID,
 				"State"=>$this->Field); //TODO - randomize the starting player 
-		}
-		
-		//echo '<pre>';
-		//print_r($this->Boards);
-		//echo '</pre>';		
+		}		
 		
 		$this->Moves['Used'] = 0;
 		$this->Moves['Left'] = 3;
@@ -81,12 +71,12 @@ class GameState
 	}
 
     function InitializeGameState() {
-
-        $State = mysql_fetch_assoc($this->GetGameState());
+		
+		$this->BuildCurrentState();
 
         ?>
         <script type="text/javascript">
-            var battlefieldData = <?php echo $State['CurrentState'] ?>;
+            var battlefieldData = <?php echo $this->CurrentState; ?>;
         </script>
     	<?php
     }
@@ -238,7 +228,7 @@ class GameState
 
 	function MoveItem($Source, $Target)
 	{
-		//print_r($this->Boards[$this->BoardStatePlayerIndex]['State']);
+		//print_r($this->Boards);
 		
 		if (!is_array($this->Boards[$this->BoardStatePlayerIndex]['State'][$Target])) {
 			$this->Boards[$this->BoardStatePlayerIndex]['State'][$Target] = Array();
@@ -466,6 +456,10 @@ class GameState
         <?php
     }
 }
+
+session_start();
+include_once('config.php');
+include_once('user.php');  
 
 switch ($_POST['action']) {
 

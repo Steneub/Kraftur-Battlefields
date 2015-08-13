@@ -18,30 +18,23 @@
     <?php
         session_start();
         include_once('config.php');
-        include_once('user.php');
-        
-        if (isset($_SESSION['UserID'])) {
-            echo $_SESSION['UserID'];
-            $LoggedInUser = new User($_SESSION['UserID']);   
-        }
-        
+        include_once('user.php');        
     ?>
 
     <div id="Menu">
 
         <ul>
+            <li><a href="index.php">Home</a></li>
             <li><a href="?do=startgame">Start Game</a></li>
             <?php 
                 if (isset($LoggedInUser)) {
-                    echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}!</li>";
+                    echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}! Your user ID is {$LoggedInUser->UserID}</li>";
                 }
             ?>  
         </ul>
 
     </div>
     <div id="Content"><?php
-
-        include_once('user.php');
 
         switch ($_GET['do'])
         {

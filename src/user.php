@@ -60,4 +60,10 @@ function getAllUsers() {
 	
 	return $Result;	
 }
+
+if (isset($_SESSION['UserID'])) {
+	$_SESSION['UserID'];
+	$LoggedInUser = new User($_SESSION['UserID']);   
+}
+
 ?>
