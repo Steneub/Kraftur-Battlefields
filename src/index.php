@@ -1,3 +1,5 @@
+<?php session_start() ?> 
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -15,8 +17,7 @@
 </head>
 <body>
 
-    <?php
-        session_start();
+    <?php        
         include_once('config.php');
         include_once('user.php');        
     ?>
@@ -56,7 +57,7 @@
                 $LoggedInUser = new User();
                 $LoggedInUser->VerifyUser($_POST['Username'], $_POST['password']);
                              
-                if (empty($LoggedInUser-->Username)) {
+                if (empty($LoggedInUser->Username)) {
                     unset($LoggedInUser, $_SESSION['UserID']);
                     echo '<pre>';
                     print_r($LoggedInUser->Messages);

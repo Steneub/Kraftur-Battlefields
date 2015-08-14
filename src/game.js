@@ -71,8 +71,7 @@ $(function () {
 					battlefieldData = data;
 
 					updateMovesDisplay(battlefieldData.Moves.Left);
-					clearField();                    
-					fieldArmy();
+					processEvents(0);
 					return;
 				});
 
@@ -218,8 +217,7 @@ $(function () {
 			battlefieldData = data;
 
 			updateMovesDisplay(battlefieldData.Moves.Left);
-			clearField();
-			fieldArmy();
+			processEvents(0);
 
 		});
 
@@ -291,16 +289,70 @@ $(function () {
 		});
 	}
 	
-	function processEvents()
-	{		
+	function processEvents(offset)
+	{
+		console.log(offset);
 		for (var i in battlefieldData.Events) {
-			switch (battlefieldData.Events[i].Type) {
-				case "Banner Event":								
-				$( '#announce' )[0].innerHTML = battlefieldData.Events[i].Message;
-				$( '#announce' ).show("slide", {"direction": "right", "easing" : "easeOutQuart"}, 1000, callback);				
+			if (i == 0) i = offset;			
+			if (i >= battlefieldData.Events.length) {
+				clearField();
+				fieldArmy();
 				break;
+			}
+			
+			if (battlefieldData.Events[i].Actor == "Game") {
+			
+				console.log(battlefieldData.Events[i]);
+			
+				switch (battlefieldData.Events[i].Action) {
+					
+					case "Formation":
+					var Ranks = new Array();
+					for (var j in battlefieldData.Events[i].Ranks) {
+						Ranks.push(".cell[rank="+battlefieldData.Events[i].Ranks[j]+"]");
+					}					
+					
+					$( Ranks.join(), $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" )).each(function () {
+						$(this)[0].innerHTML = '<img src="img/armies/debug/'+battlefieldData.Events[i].Color+'_charge.gif"/>';												
+					});				
+					
+					break;
+					
+					case "Defend":					
+					var Files = new Array();
+					for (var j in battlefieldData.Events[i].Files) {
+						Files.push(".file[file="+battlefieldData.Events[i].Files[j]+"]");
+					}				
+										
+					$( Files.join(), ".playingfield-bottom" ).each(function () {						
+						$( ".cell[rank="+battlefieldData.Events[i].Rank+"]", $(this) )[0].innerHTML = '<img src="img/armies/debug/wall.PNG"/>';
+					});		
+					break;
+					
+					case "Swap":					
+					var a = $( ".cell[rank="+battlefieldData.Events[i].Ranks[0]+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
+					var b = $( ".cell[rank="+battlefieldData.Events[i].Ranks[1]+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
+										
+					var c = $(a)[0].innerHTML;					
+					$(a)[0].innerHTML = $(b)[0].innerHTML;
+					$(b)[0].innerHTML = c;
+					break;
+					
+					/*
+					case "Banner Event":
+					$( '#announce' )[0].innerHTML = battlefieldData.Events[i].Message;
+					$( '#announce' ).show("slide", {"direction": "right", "easing" : "easeOutQuart"}, 1000, callback);				
+					break;
+					*/
+				}
+			
+				//setTimeout(processEvents, 1000, ++i);				
+				//break;						
 			}			
-		}
+			
+			setTimeout(processEvents, 100, ++i);
+			break;
+		}				
 	}
 	
     function callback()
@@ -311,7 +363,7 @@ $(function () {
     }
 	
 	updateMovesDisplay(battlefieldData.Moves.Left);
-	processEvents();
+	processEvents(0);
     fieldArmy();
 
 });

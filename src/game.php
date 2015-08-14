@@ -62,7 +62,7 @@ class GameState
 
         $this->Name = 'Test Game'; //TODO - game creation form
 		
-		$this->Events[] = Array("Type"=>"Banner Event", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
+		$this->Events[] = Array("Type"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
 		
 		$this->GameID = $this->RegisterGame();
 		$this->BuildCurrentState();
@@ -147,6 +147,21 @@ class GameState
 				)
 			);
 	}
+	
+	function SwitchPlayers() {
+		foreach($this->Boards as $BoardIndex => &$BoardData) {			
+			$BoardData['CurrentPlayer'] = !$BoardData['CurrentPlayer'];
+			if ($BoardData['CurrentPlayer']) {
+				
+				$PlayerUserInfo = User::GetUserInfo($BoardData['PlayerID']);
+				$this->Events[] = Array("Type"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$PlayerUserInfo['Name']}'s Turn!");
+			} 
+		}
+		
+		$this->Moves['Used'] = 0;
+		$this->Moves['Left'] = 3;
+		 
+	}
 
 	function BuildArmyDeck()
 	{
@@ -220,6 +235,13 @@ class GameState
 		if ($this->EligibleToBeDeleted($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank])) {
 			unset($this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]);
 			
+			$this->Events[] = Array(
+				"Action" => "Delete",
+				"Actor" => "Player",
+				"Rank" => $Rank,
+				"File" => $File
+			);
+			
 			$this->Moves['Used']++;
 			$this->Moves['Left']--;
 			
@@ -238,6 +260,25 @@ class GameState
 			$this->Boards[$this->BoardStatePlayerIndex]['State'][$Target],
 			array_pop($this->Boards[$this->BoardStatePlayerIndex]['State'][$Source]));
 			
+		$this->Events[] = Array(
+			"Action"=>"Pickup",
+			"Actor" => "Player",
+			"File"=>$Source			
+		);
+		
+		$this->Events[] = Array(
+			"Action"=>"Move",
+			"Actor" => "Player",
+			"Source"=>$Source,
+			"Target"=>$Target			
+		);
+		
+		$this->Events[] = Array(
+			"Action"=>"Drop",
+			"Actor" => "Player",
+			"File"=>$Target
+		);
+		
 		$this->Moves['Used']++;
 		$this->Moves['Left']--;
 	}
@@ -252,9 +293,6 @@ class GameState
 	function SortField()
 	{
 		$this->Sorts++;
-
-		//echo "Index: {$this->BoardStatePlayerIndex}\n";
-		//print_r($this->Boards);
 
 		foreach ($this->Boards[$this->BoardStatePlayerIndex]['State'] as $FileKey => &$FileArray) {
 
@@ -274,6 +312,13 @@ class GameState
 						$FileArray[$i-1] = $FileArray[$i];
 						$FileArray[$i] = $Swap;
 						$SwapCount++;
+						
+						$this->Events[] = Array(
+							"Action" => "Swap",
+							"Actor" => "Game",
+							"File" => $FileKey,
+							"Ranks" => Array($i, $i-1)
+						);
 					}
 				}
 			} while ($SwapCount > 0);
@@ -323,6 +368,13 @@ class GameState
 						{
 							//attack match!
 							$this->Messages[] = $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'].' charge match at ('.$File.','.$Rank.')';
+							$this->Events[] = Array(
+								"Action" => "Formation",
+								"Color" => $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'],
+								"Actor" => "Game",
+								"File" => $File,
+								"Ranks" => Array($Rank, $Rank+1, $Rank+2)
+							);
 							$Matches++;
 
 							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'] = TRUE;
@@ -351,7 +403,15 @@ class GameState
 						for ($r = 0; $r < $DefendMatches; $r++)
 						{
 							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File + $r][$Rank]['Wall'] = TRUE;
+							$WallFiles[] = ($File + $r);
 						}
+						
+						$this->Events[] = Array(
+							"Action" => "Defend",
+							"Actor" => "Game",
+							"Rank" => $Rank,
+							"Files" => $WallFiles
+						);
 
 						$Matches++;
 					}
@@ -493,12 +553,16 @@ switch ($_POST['action']) {
 		
 		if ($_POST['action'] == "move")		$Game->MoveItem($_POST['fileSource'], $_POST['fileTarget']);
 		if ($_POST['action'] == "delete")	$Game->DeleteItem($_POST['file'], $_POST['rank']);
-
+		
         do {
             $Game->SortField();
             $NumMatches = $Game->DetectAndManageMatches();
             $Game->Matches += $NumMatches;			
         } while ($NumMatches > 0);
+
+		if ($Game->Moves['Left'] <= 0) {
+			$Game->SwitchPlayers();
+		}
 
 		$Game->BuildCurrentState();
 		$Game->UpdateGameState($Game->CurrentState);
