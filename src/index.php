@@ -39,6 +39,10 @@
 
         switch ($_GET['do'])
         {
+            case "joingame":
+                include_once('game.php');
+                $_SESSION['GameID'] = $_GET['GameID'];
+            
             case "playgame":
                 include_once('game.php');
                 $Game = new GameState($_GET['GameID']);

@@ -62,9 +62,7 @@ $(function () {
 					dataType: "json",
 					data: {action: "move", player: battlefieldData.Boards[clickObject.player].PlayerID, fileSource: gutter.fileSource, fileTarget: clickObject.file, GameID: battlefieldData.GameID}
 				}).done(function (data) {
-
-					var target = $(this);
-
+					
 					console.log('Move Complete!');
 					console.log(data);
 					
@@ -241,6 +239,8 @@ $(function () {
 						var index = i; 							
 				}						
 			}			
+			
+			console.log(player, index);
 		
             $( '.file', $( this ) ).each( function () {
 
@@ -249,7 +249,7 @@ $(function () {
                 $( '.cell', $( this )).each( function () {
 
                     var rank = $(this).index();
-					
+										
                     if (battlefieldData.Boards[index].State[file]) {
                         if (battlefieldData.Boards[index].State[file][rank]) {
                             switch (battlefieldData.Boards[index].State[file][rank].Type) {
@@ -290,6 +290,7 @@ $(function () {
 	function processEvents(offset)
 	{
 		console.log(offset);
+				
 		for (var i in battlefieldData.Events) {
 			if (i == 0) i = offset;			
 			if (i >= battlefieldData.Events.length) {
@@ -346,7 +347,7 @@ $(function () {
 									
 			}			
 			
-			setTimeout(processEvents, 1000, ++i);
+			setTimeout(processEvents, 50, ++i);
 			break;
 		}				
 	}
@@ -358,8 +359,75 @@ $(function () {
       	}, 1000 );
     }
 	
+	var waitTime = Array(0,5000,5000,5000,7000,10000,15000,20000);		
+	function updateLoop(waitIndex) {
+		
+		console.log('starting loop');
+		
+		for (var i in battlefieldData.Boards) {			
+			if (battlefieldData.Boards[i].CurrentPlayer && battlefieldData.Boards[i].IsMe) var IAmPlayer = true; 
+		}				
+		
+		
+		//I'm not the acting player
+		if (IAmPlayer !== true) {
+			
+			console.log('gonna fetch');
+			
+			$.ajax({
+					type: "GET",
+					url: serverurl,
+					dataType: "json",
+					data: {action: "peek", timestamp: battlefieldData.TimeStamp}
+				}).done(function (data) {				
+	
+					console.log(data);
+	
+					if (data.Response == true) {
+				
+						$.ajax({
+							type: "GET",			
+							url: serverurl,
+							dataType: "json",			
+							data: {action: "fetch"}
+						}).done(function (data) {		
+				
+							console.log(data);
+							battlefieldData = data;
+							processEvents(0);
+														
+							waitIndex = 0;				
+						});
+					
+					//nothing happened, wait some more	
+					} 
+					else if (data.Response == false) {
+						
+						waitIndex++;
+						console.log(waitIndex, waitTime.length);
+						if (waitIndex >= waitTime.length) waitIndex = waitTime.length - 1;
+					} 
+					else {
+						console.log('ERROR');
+					}
+					
+					//console.log("Waiting for "+waitTime[waitIndex]+"ms");	
+					setTimeout(updateLoop, 5000, waitIndex); 
+					
+				});
+		}
+		else {
+			console.log('I am the player, so I just do my thing');
+			setTimeout(updateLoop, 500, 0);
+		}
+		
+		
+	}
+	
 	updateMovesDisplay(battlefieldData.Moves.Left);
-	processEvents(0);
-    fieldArmy();
+	//processEvents(0);
+	fieldArmy();
+	updateLoop(0);
+	
 
 });

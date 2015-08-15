@@ -10,12 +10,20 @@ class GameState
     {
 		if (isset($GameID))
 		{
-            $this->GameID = $GameID;
-			$this->CurrentState = mysql_fetch_assoc($this->GetGameState());
-			$this->CurrentState = json_decode($this->CurrentState['CurrentState'], true);
+            $this->GameID = $GameID;			
+			$this->CurrentState = mysql_fetch_assoc($this->GetCurrentGameState());
+			
+			$this->LastUpdate = $this->CurrentState['Timestamp']; 	
+			
+			//echo '<pre>';
+			//print_r($this->CurrentState);			
+			//echo '</pre>';
+			
+			$this->CurrentState = json_decode($this->CurrentState['State'], true);							
 						
 			$this->Moves = $this->CurrentState['Moves'];
 			$this->Boards = $this->CurrentState['Boards'];
+			$this->Events = $this->CurrentState['Events'];			
 			
 			global $LoggedInUser;
 				
@@ -64,9 +72,11 @@ class GameState
 		
 		$this->Events[] = Array("Type"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
 		
-		$this->GameID = $this->RegisterGame();
+		$this->GameID = $this->RegisterGame($Players);
+		$_SESSION['GameID'] = $this->GameID;
 		$this->BuildCurrentState();
-        $this->RecordInitialGameState();					
+	
+		$this->RecordGameState();					
 		
 	}
 
@@ -81,60 +91,62 @@ class GameState
     	<?php
     }
 
-    function GetGameState() {
+    function GetCurrentGameState() {
 
         global $handle, $MySQL_context;
-        $sql = "SELECT * FROM {$MySQL_context}Game WHERE ID = {$this->GameID}";
+        $sql = "SELECT * FROM {$MySQL_context}Game_Events 
+				WHERE Game = {$this->GameID}
+				ORDER BY `TimeStamp` DESC 
+				LIMIT 1";
 
         if (!$sql_result = mysql_query($sql,$handle)) die(mysql_error($handle));
         return $sql_result;
     }
 	
-	function UpdateGameState($CurrentState) {
+	function GetUpdatesSinceTimestamp($Timestamp) {
+		
+		global $handle, $MySQL_context;		
+ 		$sql = "SELECT `ID` FROM {$MySQL_context}Game_Events 
+				WHERE Game = {$this->GameID}
+				AND Timestamp > '{$Timestamp}'";
+		
+		$this->Messages[] = $sql;
+						
+		if (!$sql_result = mysql_query($sql,$handle)) die(mysql_error($handle));
+        return mysql_num_rows($sql_result);				
+	}		
+	
+	function RecordGameState() {
 		
 		global $handle, $MySQL_context;
-		$sql = "UPDATE {$MySQL_context}Game SET    			
-    			`CurrentState` = '".addslashes($CurrentState)."'
-    			WHERE ID = {$this->GameID}";
+		$sql = "INSERT {$MySQL_context}Game_Events (`Game`, `State`) VALUES    			
+    			({$this->GameID}, '".str_replace("'", "\'", $this->CurrentState)."')";
 				
 		if (!mysql_query($sql)) die(mysql_error($handle).$sql);
-		
 	}	
 
-    function RegisterGame() {
+    function RegisterGame($Players) {
 
         global $handle, $MySQL_context;
 
         $sql = "INSERT INTO {$MySQL_context}Game (`Name`, `Player1`, `Player2`)
-                VALUES ('".addslashes($this->Name)."', '".addslashes($this->PlayerOne)."', '".addslashes($this->PlayerTwo)."');";
+                VALUES ('".addslashes($this->Name)."', {$Players[0]}, {$Players[1]});";
 
         if (!mysql_query($sql)) die(mysql_error($handle));
 
         return mysql_insert_id($handle);
 
     }
+	
 
-    function RecordInitialGameState() {
-
-    	global $handle, $MySQL_context;
-		
-		$this->BuildCurrentState();
-
-    	$sql = "UPDATE {$MySQL_context}Game SET
-    			`BeginState` = '".addslashes($this->CurrentState)."',
-    			`CurrentState` = '".addslashes($this->CurrentState)."'
-    			WHERE ID = {$this->GameID}";
-
-        if (!mysql_query($sql)) die(mysql_error($handle).$sql);
-
-    }
 
 	function BuildCurrentState()
 	{
 		$this->Messages[] = "Sorts: ".$this->Sorts;
 		$this->CurrentState = JSON_encode(
 				Array(
-					"GameID"=>$this->GameID, 
+					"GameID"=>$this->GameID,
+					"TimeStamp"=>$this->LastUpdate, 
 					"Messages"=>$this->Messages, 
 					"Events"=>$this->Events, 
 					"Matches"=>$this->Matches,
@@ -578,16 +590,16 @@ switch ($_POST['action']) {
         $Game = new GameState();
         //$Game = new GameState(Array('Army'=>$DebugField));
 		echo $Game->BuildCurrentState();
-		$Game->UpdateGameState($Game->CurrentState);
+		$Game->RecordGameState();
         echo $Game->CurrentState;
         break;
 
 
     //TODO: move and delete are stupid-similar. Move this into a single something where they can be handled
     case "move":
-	case "delete":
-	
-        $Game = new GameState($_POST['GameID']);
+	case "delete":	
+        $Game = new GameState($_SESSION['GameID']);
+		unset($Game->Events);
 		
 		if ($_POST['action'] == "move")		$Game->MoveItem($_POST['fileSource'], $_POST['fileTarget']);
 		if ($_POST['action'] == "delete")	$Game->DeleteItem($_POST['file'], $_POST['rank']);
@@ -603,10 +615,38 @@ switch ($_POST['action']) {
 		}
 		
 		$Game->BuildCurrentState();
-		$Game->UpdateGameState($Game->CurrentState);
+		$Game->RecordGameState();
         echo $Game->CurrentState;
 
         break; 
+	
+}
+
+switch ($_GET['action']) {
+	case "peek":
+		
+		$Game = new GameState($_SESSION['GameID']);
+		
+		$Updates = $Game->GetUpdatesSinceTimestamp($_GET['timestamp']);
+		$Game->Messages[] = $Updates;
+		
+		echo JSON_encode(
+				Array(
+					"Response"=>$Updates > 0,					 
+					"Messages"=>$Game->Messages
+				)
+			);			
+		
+			
+		//print_r(get_defined_vars());			
+			
+		break;
+		
+	case "fetch":
+		$Game = new GameState($_SESSION['GameID']);
+		$Game->BuildCurrentState();
+        echo $Game->CurrentState;
+		break;
 }
 
 ?>
