@@ -316,8 +316,9 @@ class GameState
 						$this->Events[] = Array(
 							"Action" => "Swap",
 							"Actor" => "Game",
+																			
 							"File" => $FileKey,
-							"Ranks" => Array($i, $i-1)
+							"Rank" => $i
 						);
 					}
 				}
@@ -333,7 +334,44 @@ class GameState
 
 		return 10;
 	}
-
+	
+	function SortEvents() {
+		
+		//$this->Messages[] = "Sorting Events";
+		//$this->Messages[] = print_r($this->Events);
+		
+		foreach($this->Events as $EventIndex => &$Event) {
+			switch ($Event['Type']) {
+				case 'Charge':
+					
+					//find the next charge in the same file that is one higher rank than the current
+					foreach($this->Events as $SearchIndex => $SearchEvent){
+						if ($SearchEvent['Type'] == 'Charge' && 
+							$SearchEvent['File'] == $Event['File'] && 
+							$SearchEvent['Rank'] == $Event['Rank']+1) {
+								
+							$ErrorLevel = error_reporting();
+							error_reporting(0);							
+								
+							$out = array_splice($this->Events, $SearchIndex, 1);
+    						array_splice($this->Events, $this->Events[$EventIndex+1], 0, $out);			
+							
+							error_reporting($ErrorLevel);
+							
+							break;
+						}
+					}
+					
+										
+				continue;
+			}
+		}
+		
+		ob_start();
+		print_r($this->Events);
+		$this->Messages[] =  ob_get_clean();
+	}
+	
 	function DetectAndManageMatches()
 	{
 		$Matches = 0;
@@ -563,7 +601,7 @@ switch ($_POST['action']) {
 		if ($Game->Moves['Left'] <= 0) {
 			$Game->SwitchPlayers();
 		}
-
+		
 		$Game->BuildCurrentState();
 		$Game->UpdateGameState($Game->CurrentState);
         echo $Game->CurrentState;

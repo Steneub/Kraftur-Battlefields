@@ -177,8 +177,6 @@ $(function () {
 			}						
 		}	
 
-		console.log(index);
-
 		clickObject = {		
 			player: index,
 			file: $(file).attr('file'),
@@ -330,8 +328,8 @@ $(function () {
 					break;
 					
 					case "Swap":					
-					var a = $( ".cell[rank="+battlefieldData.Events[i].Ranks[0]+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
-					var b = $( ".cell[rank="+battlefieldData.Events[i].Ranks[1]+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
+					var a = $( ".cell[rank="+battlefieldData.Events[i].Rank+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
+					var b = $( ".cell[rank="+(battlefieldData.Events[i].Rank-1)+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
 										
 					var c = $(a)[0].innerHTML;					
 					$(a)[0].innerHTML = $(b)[0].innerHTML;
@@ -345,12 +343,10 @@ $(function () {
 					break;
 					*/
 				}
-			
-				//setTimeout(processEvents, 1000, ++i);				
-				//break;						
+									
 			}			
 			
-			setTimeout(processEvents, 100, ++i);
+			setTimeout(processEvents, 1000, ++i);
 			break;
 		}				
 	}
