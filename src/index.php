@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
     <!-- <link rel="stylesheet" href="/resources/demos/style.css"> -->
     <link rel="stylesheet" href="style.css">
+    
+    <link rel="shortcut icon" href="img/web/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="img/web/favicon.ico" type="image/x-icon">    
 
     <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
