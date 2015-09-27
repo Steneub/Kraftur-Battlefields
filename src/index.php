@@ -27,13 +27,17 @@
         <ul>
             <li><a href="index.php">Home</a></li>
 
-            <?php 
+            <?php             
                 if (isset($LoggedInUser)) {
                     echo '<li><a href="?do=newgame">New Game</a></li>';
                     echo '<li><a href="?do=gamelist">My Games</a></li>';
                     echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}! Your user ID is {$LoggedInUser->UserID} (<a href=\"?do=logout\">logout</a>)</li>";
                 }
-            ?>  
+                else {
+                    echo '<li><a href="?do=loginform">Login</a></li>';
+                }               
+            ?>        
+            
         </ul>
 
     </div>
@@ -89,10 +93,23 @@
                 session_unset();
                 $_GET['redirect'] = "index.php";
                 break;
-
-            default:
+                
+            case "loginform":
                 ?>
-
+                <div id="login">
+                    <form name="loginform" action="index.php?do=login" method="POST">
+                        <select name="Username">
+                            <?php 
+                                foreach (getAllUsers() as $UserID=>$UserName) {
+                                    echo "<option value=\"{$UserID}\">{$UserName}</option>"; 
+                                }
+                            ?>
+                        </select>
+                        <input type="hidden" name="Password" value="qwerty"/>
+                        <input type="submit" value="Login"/>    
+                    </form>                    
+                </div>
+                
 <!--                
                 <div id="login">
                     <ul>
@@ -144,22 +161,12 @@
                         </form>
                     </div>
                 </div>
--->
-            <div id="login">
-                <form name="loginform" action="index.php?do=login" method="POST">
-                    <select name="Username">
-                        <?php 
-                            foreach (getAllUsers() as $UserID=>$UserName) {
-                                echo "<option value=\"{$UserID}\">{$UserName}</option>"; 
-                            }
-                        ?>
-                    </select>
-                    <input type="hidden" name="Password" value="qwerty"/>
-                    <input type="submit" value="Login"/>    
-                </form>                    
-            </div>
-                
-            <?php
+-->            
+
+                <?php
+                break;
+
+            default:
             break;
         }
 
