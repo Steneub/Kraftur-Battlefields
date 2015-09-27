@@ -7,8 +7,18 @@ class GameState
 	public $Messages = Array();
 
     function __construct($GameID = NULL)
-    {
-		if (isset($GameID))
+    {	
+		
+		if (is_array($GameID))
+		{
+			extract($GameID);
+			
+			$this->Name = $GameName; 
+			$this->Players = $Players;
+			$this->CreateFreshGame();
+		}
+				
+		elseif (isset($GameID))
 		{
             $this->GameID = $GameID;			
 			$this->CurrentState = mysql_fetch_assoc($this->GetCurrentGameState());
@@ -40,10 +50,6 @@ class GameState
 			}
 				
 		}
-		else
-		{
-			$this->CreateFreshGame();
-		}
 	}
 	
 	function CreateFreshGame() {
@@ -51,9 +57,7 @@ class GameState
 		$this->Messages[] = "Building fresh game";
 		global $LoggedInUser;
 		
-		$Players = Array(1,2); //TODO - Make this dynamically loaded. For right now it's always ID 1 and 2
-		
-		foreach($Players as $PlayerID) {
+		foreach($this->Players as $PlayerID) {
 			
 			$this->BuildArmyDeck();
             $this->SpawnArmy();
@@ -67,12 +71,9 @@ class GameState
 		
 		$this->Moves['Used'] = 0;
 		$this->Moves['Left'] = 3;
-
-        $this->Name = 'Test Game'; //TODO - game creation form
 		
 		$this->Events[] = Array("Type"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
-		
-		$this->GameID = $this->RegisterGame($Players);
+		$this->GameID = $this->RegisterGame($this->Players);
 		$_SESSION['GameID'] = $this->GameID;
 		$this->BuildCurrentState();
 	
@@ -565,6 +566,40 @@ class GameState
         <span id="delete">X</span>
         <?php
     }
+}
+
+function GameCreateForm() {
+	
+	?>
+	
+	<div id="newgame">
+		<form name="newgameform" action="index.php?do=startgame" method="POST">			
+			<table>
+				<tr>
+					<th>Game Name</th>
+					<td><input name="GameName"/></td>
+				</tr>
+				<tr>
+					<th>Opponent</th>
+					<td><select name="Opponent">
+                        <?php 												
+							global $LoggedInUser;
+                            foreach (getAllUsers() as $UserID=>$UserName) {
+                                if ($LoggedInUser->UserID != $UserID)
+								echo "<option value=\"{$UserID}\">{$UserName}</option>"; 
+                            }
+                        ?>					
+                    </select></td>
+				</tr>
+				<tr>
+					<td colspan="2"><input type="submit" value="Start!"/>
+				</tr>				
+			</table>			
+		</form>				
+	</div>
+	
+	<?php
+	
 }
 
 session_start();

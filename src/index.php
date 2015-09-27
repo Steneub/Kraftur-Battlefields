@@ -26,10 +26,11 @@
 
         <ul>
             <li><a href="index.php">Home</a></li>
-            <li><a href="?do=startgame">Start Game</a></li>
+
             <?php 
                 if (isset($LoggedInUser)) {
-                    echo '<li><a href="?do=gamelist">My Games<a/></li>';
+                    echo '<li><a href="?do=newgame">New Game</a></li>';
+                    echo '<li><a href="?do=gamelist">My Games</a></li>';
                     echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}! Your user ID is {$LoggedInUser->UserID}</li>";
                 }
             ?>  
@@ -40,6 +41,11 @@
 
         switch ($_GET['do'])
         {
+            case "newgame":
+                include_once('game.php');
+                GameCreateForm();     
+                break;    
+                
             case "gamelist":
                 include_once('site.php');
                 $GameList = GetGameList($LoggedInUser->UserID);
@@ -60,7 +66,7 @@
 
             case "startgame":
                 include_once('game.php');
-                $Game = new GameState();
+                $Game = new GameState(array('GameName'=>$_POST['GameName'], 'Players'=>array($LoggedInUser->UserID, $_POST['Opponent'])));
                 $_GET['redirect'] = 'index.php?do=playgame$AMP;GameID='.$Game->GameID;
                 break;
 
