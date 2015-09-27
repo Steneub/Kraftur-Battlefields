@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Kraftur Battlefield</title>
+    <title>Kraftur Battlefields</title>
 
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
     <!-- <link rel="stylesheet" href="/resources/demos/style.css"> -->
@@ -179,7 +179,7 @@
         <?php endif ?>
 
     </div>
-    <div id="Footer">Kraftur Battlefield</div>
+    <div id="Footer">Kraftur Battlefields</div>
 
 </body>
 </html>
