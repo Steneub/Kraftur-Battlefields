@@ -44,7 +44,7 @@ function MakeGameList($GameList) {
 		while ($row = mysql_fetch_assoc($GameList)) {
 			echo '<tr>';
 			echo "<td>{$row['GameID']}</td>";
-			echo "<td><a href=\"?do=playgame&ID={$row['GameID']}\">{$row['GameName']}</a></td>";
+			echo "<td><a href=\"?do=playgame&GameID={$row['GameID']}\">{$row['GameName']}</a></td>";
 			echo "<td>{$row['Player1Name']}, {$row['Player2Name']}";
 			echo '</tr>';
 		}
