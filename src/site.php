@@ -49,8 +49,18 @@ function MakeGameList($GameList) {
 			echo '</tr>';
 		}
 		echo '</table>';
-	}
+	}	
+}
+
+function ShowNews() {
 	
+	$News[] = array("Headline"=>"Welcome to War!", "Body"=>"<p>This is the first stubbed Newspost!</p><p>You should feel special!</p><p>Exclamation Point!</p>");
+	
+	foreach ($News as $Item) {
+		echo '<h2>'.$Item['Headline'].'</h2>';
+		echo '<hr/>';
+		echo $Item['Body'];
+	}
 }
 
 ?>

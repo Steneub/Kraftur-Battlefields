@@ -167,7 +167,9 @@
                 break;
 
             default:
-            break;
+                include_once('site.php');
+                ShowNews();
+                break;
         }
 
         if (isset($_GET['redirect'])) : ?>
