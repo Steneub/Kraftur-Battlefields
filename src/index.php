@@ -29,6 +29,7 @@
             <li><a href="?do=startgame">Start Game</a></li>
             <?php 
                 if (isset($LoggedInUser)) {
+                    echo '<li><a href="?do=gamelist">My Games<a/></li>';
                     echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}! Your user ID is {$LoggedInUser->UserID}</li>";
                 }
             ?>  
@@ -39,9 +40,16 @@
 
         switch ($_GET['do'])
         {
+            case "gamelist":
+                include_once('site.php');
+                $GameList = GetGameList($LoggedInUser->UserID);
+                MakeGameList($GameList);                   
+                break;
+            
             case "joingame":
                 include_once('game.php');
                 $_SESSION['GameID'] = $_GET['GameID'];
+                //TODO: Is there supposed to be a break here?
             
             case "playgame":
                 include_once('game.php');
