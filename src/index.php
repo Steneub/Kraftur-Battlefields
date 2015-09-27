@@ -31,7 +31,7 @@
                 if (isset($LoggedInUser)) {
                     echo '<li><a href="?do=newgame">New Game</a></li>';
                     echo '<li><a href="?do=gamelist">My Games</a></li>';
-                    echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}! Your user ID is {$LoggedInUser->UserID}</li>";
+                    echo "<li>Hi, {$LoggedInUser->UserInfo['Name']}! Your user ID is {$LoggedInUser->UserID} (<a href=\"?do=logout\">logout</a>)</li>";
                 }
             ?>  
         </ul>
@@ -83,6 +83,11 @@
                 }
                 
                 $_GET['redirect'] = "index.php";                
+                break;
+                
+            case "logout":
+                session_unset();
+                $_GET['redirect'] = "index.php";
                 break;
 
             default:
