@@ -9,6 +9,7 @@
 
 body {
     margin:0px;
+    font-family: Arial;
 }
 
 #Menu {
@@ -28,7 +29,27 @@ body {
 
 #Menu ul li { 
     display: inline;
+    margin-right: 1em;
 }
+
+#Menu {
+    color: #DDDDDD;
+}
+
+#Menu a,
+#Menu a:visited,
+#Menu a:active,
+#Menu a:hover,
+#Menu a:focus {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+#Menu a:hover,
+#Menu a:focus {    
+    text-shadow: 0 0 3px #FFFFFF;
+}
+
 
 #Content,
 #Footer {
