@@ -40,7 +40,7 @@ class GameState
 			foreach($this->Boards as $BoardIndex => &$BoardData) {	
 				
 				if ($BoardData['PlayerID'] == $LoggedInUser->UserID) {
-					$BoardData['IsMe'] = TRUE;
+					$BoardData['IsMe'] = TRUE;					
 					$this->BoardStatePlayerIndex = $BoardIndex;
 				}
 				else {
@@ -536,6 +536,32 @@ class GameState
 		return $Matches;
 
 	}
+	
+	function GetPlayerID ($PlayerIndex) {
+		return $this->Boards[$PlayerIndex]['PlayerID'];		
+	}
+	
+	function GetCharacterPortrait($var) {
+		
+		switch ($var) {
+			case 'player':
+			$Index = $this->BoardStatePlayerIndex;
+			break;
+			
+			case 'opponent':
+			$Index = $this->BoardStateOpponentIndex;
+			break;
+		}
+		
+		switch ($this->GetPlayerID($Index)) {
+			case 1:
+			return 'img/portraits/sean.png';
+			
+			case 2:
+			return 'img/portraits/underdog.png';
+		}
+		
+	}
 
     function DisplayGame() {
         ?>
@@ -550,7 +576,7 @@ class GameState
         <div id="gameboard">
             <div class="player player-top">
                 <div class="bars"></div>
-                <div class="portrait" style="background-image:url('img/portraits/sean.png')"></div>
+                <div class="portrait" style="background-image:url('<?php echo $this->GetCharacterPortrait('opponent') ?>')"></div>
             </div>
 
             <div class="playingfield playingfield-top"></div>
@@ -559,7 +585,7 @@ class GameState
 
             <div class="player player-bottom">
                 <div class="bars"></div>
-                <div class="portrait" style="background-image:url('img/portraits/underdog.png')"></div>
+                <div class="portrait" style="background-image:url('<?php echo $this->GetCharacterPortrait('player') ?>')"></div>
             </div>
         </div>
 
