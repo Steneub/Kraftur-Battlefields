@@ -72,7 +72,7 @@ class GameState
 		$this->Moves['Used'] = 0;
 		$this->Moves['Left'] = 3;
 		
-		$this->Events[] = Array("Type"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
+		$this->Events[] = Array("Action"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$LoggedInUser->UserInfo['Name']}'s Turn!");
 		$this->GameID = $this->RegisterGame($this->Players);
 		$_SESSION['GameID'] = $this->GameID;
 		$this->BuildCurrentState();
@@ -167,7 +167,7 @@ class GameState
 			if ($BoardData['CurrentPlayer']) {
 				
 				$PlayerUserInfo = User::GetUserInfo($BoardData['PlayerID']);
-				$this->Events[] = Array("Type"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$PlayerUserInfo['Name']}'s Turn!");
+				$this->Events[] = Array("Action"=>"Banner Event", "Actor" => "Game", "Message"=>"It is {$PlayerUserInfo['Name']}'s Turn!");
 			} 
 		}
 		
@@ -263,7 +263,7 @@ class GameState
 
 	function MoveItem($Source, $Target)
 	{
-		//print_r($this->Boards);
+		print_r($this->Boards);
 		
 		if (!is_array($this->Boards[$this->BoardStatePlayerIndex]['State'][$Target])) {
 			$this->Boards[$this->BoardStatePlayerIndex]['State'][$Target] = Array();

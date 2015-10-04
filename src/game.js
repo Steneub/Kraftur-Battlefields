@@ -47,19 +47,23 @@ $(function () {
 		
 			//console.log('placing unit');
 			
-			//console.log(battlefieldData.CurrentState[clickObject.player].Board[clickObject.file].length);			
+			//console.log(battlefieldData.Boards[clickObject.player].State[clickObject.file].length);			
 			if (battlefieldData.Boards[clickObject.player].State[clickObject.file].length >= 6) return;
 
 			//console.log('pushing into place');
     		battlefieldData.Boards[clickObject.player].State[clickObject.file].push(gutter);
 			
-			//console.log('check whether to push to server');
+			//console.log('check whether to push to server');			
+			//console.log(clickObject.file, gutter.fileSource);			
 			if (clickObject.file != gutter.fileSource) {
+				
+				var poop = {action: "move", player: battlefieldData.Boards[clickObject.player].PlayerID, fileSource: gutter.fileSource, fileTarget: clickObject.file, GameID: battlefieldData.GameID};
+				console.log('push!', poop);
 				
 				$.ajax({
 					type: "POST",
 					url: serverurl,
-					dataType: "json",
+					dataType: "text",
 					data: {action: "move", player: battlefieldData.Boards[clickObject.player].PlayerID, fileSource: gutter.fileSource, fileTarget: clickObject.file, GameID: battlefieldData.GameID}
 				}).done(function (data) {
 					
@@ -81,7 +85,7 @@ $(function () {
 				fieldArmy();
 			}			
 			
-			//console.log('empty gutter');			
+			console.log('empty gutter');			
 			$( '.gutter img' ).detach();
 			gutter = new Object;
 
@@ -337,12 +341,13 @@ $(function () {
 					$(b)[0].innerHTML = c;
 					break;
 					
-					/*
+					
 					case "Banner Event":
+					console.log('I have an announcment to make!');
 					$( '#announce' )[0].innerHTML = battlefieldData.Events[i].Message;
 					$( '#announce' ).show("slide", {"direction": "right", "easing" : "easeOutQuart"}, 1000, callback);				
 					break;
-					*/
+					
 				}
 									
 			}			
@@ -360,14 +365,14 @@ $(function () {
     }
 	
 	var waitTime = Array(0,5000,5000,5000,7000,10000,15000,20000);		
+	var debugTick = 0;
 	function updateLoop(waitIndex) {
 		
 		console.log('starting loop');
 		
 		for (var i in battlefieldData.Boards) {			
 			if (battlefieldData.Boards[i].CurrentPlayer && battlefieldData.Boards[i].IsMe) var IAmPlayer = true; 
-		}				
-		
+		}
 		
 		//I'm not the acting player
 		if (IAmPlayer !== true) {
@@ -385,6 +390,8 @@ $(function () {
 	
 					if (data.Response == true) {
 				
+						console.log('something happened!')	
+				
 						$.ajax({
 							type: "GET",			
 							url: serverurl,
@@ -399,13 +406,13 @@ $(function () {
 							waitIndex = 0;				
 						});
 					
-					//nothing happened, wait some more	
 					} 
 					else if (data.Response == false) {
 						
+						console.log('nothing happened')	
 						waitIndex++;
-						console.log(waitIndex, waitTime.length);
 						if (waitIndex >= waitTime.length) waitIndex = waitTime.length - 1;
+						console.log('going to wait '+waitTime[waitIndex]+'ms');
 					} 
 					else {
 						console.log('ERROR');
@@ -417,15 +424,15 @@ $(function () {
 				});
 		}
 		else {
-			console.log('I am the player, so I just do my thing');
-			setTimeout(updateLoop, 500, 0);
+			debugTick++;
+			console.log('I am the player, so I just do my thing ('+debugTick+')');
+			//setTimeout(updateLoop, 500, 0);
 		}
-		
 		
 	}
 	
 	updateMovesDisplay(battlefieldData.Moves.Left);
-	//processEvents(0);
+	processEvents(0);
 	fieldArmy();
 	updateLoop(0);
 	
