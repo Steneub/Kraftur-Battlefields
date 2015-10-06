@@ -63,7 +63,7 @@ $(function () {
 				$.ajax({
 					type: "POST",
 					url: serverurl,
-					dataType: "text",
+					dataType: "json",
 					data: {action: "move", player: battlefieldData.Boards[clickObject.player].PlayerID, fileSource: gutter.fileSource, fileTarget: clickObject.file, GameID: battlefieldData.GameID}
 				}).done(function (data) {
 					
@@ -426,7 +426,7 @@ $(function () {
 		else {
 			debugTick++;
 			console.log('I am the player, so I just do my thing ('+debugTick+')');
-			//setTimeout(updateLoop, 500, 0);
+			setTimeout(updateLoop, 500, 0);
 		}
 		
 	}

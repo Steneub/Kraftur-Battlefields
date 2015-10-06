@@ -66,6 +66,7 @@
             
             case "playgame":
                 include_once('game.php');
+                $_SESSION['GameID'] = $_GET['GameID'];
                 $Game = new GameState($_GET['GameID']);
                 $Game->InitializeGameState();
                 $Game->DisplayGame();

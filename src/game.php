@@ -7,8 +7,8 @@ class GameState
 	public $Messages = Array();
 
     function __construct($GameID = NULL)
-    {	
-		
+    {
+			
 		if (is_array($GameID))
 		{
 			extract($GameID);
@@ -25,9 +25,11 @@ class GameState
 			
 			$this->LastUpdate = $this->CurrentState['Timestamp']; 	
 			
+			//echo 'Bloop?';
 			//echo '<pre>';
 			//print_r($this->CurrentState);			
 			//echo '</pre>';
+			//echo 'BEEP!';
 			
 			$this->CurrentState = json_decode($this->CurrentState['State'], true);							
 						
@@ -262,8 +264,29 @@ class GameState
 	}
 
 	function MoveItem($Source, $Target)
-	{
+	{		
+		
+		/*
+		echo 'Is $this->Boards Set?';				
+		if (isset($this->Boards)) {
+			echo 'Yes it is!';
+		}
+		else {
+			echo 'No, there\'s a problem.';	
+		}
+		
+		echo "\n";
+		
+		echo 'Is my $this->Boards an array? ';		
+		if (is_array($this->Boards)) {
+			echo 'Yes it is!';
+		}
+		else { 
+			echo 'No, there\'s a problem.';
+		}		
+		
 		print_r($this->Boards);
+		*/
 		
 		if (!is_array($this->Boards[$this->BoardStatePlayerIndex]['State'][$Target])) {
 			$this->Boards[$this->BoardStatePlayerIndex]['State'][$Target] = Array();
