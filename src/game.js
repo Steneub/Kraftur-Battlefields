@@ -110,6 +110,8 @@ $(function () {
 	
 	$ ('#gameboard').on('mousedown', '.cell', function (event) {		
 
+		if (!IAmPlayer) return;
+
 		var file = $(this).parent();
 		var player = new String;
 		if ($(file).parent().hasClass('playingfield-top')) player = 'Opponent';
@@ -123,9 +125,7 @@ $(function () {
 				(player == 'Opponent' && !battlefieldData.Boards[i].IsMe)) {
 					var index = i; 							
 			}						
-		}		
-		
-		
+		}				
 
 		clickObject = {		
 			player: index,
@@ -163,6 +163,8 @@ $(function () {
 		$(this).removeClass('del-highlight');	
 		
 	}).on('click', '.gutter', function () {	
+		
+		if (!IAmPlayer) return;
 		
 		var file = $(this).parent();
 		var player = new String;
@@ -364,15 +366,21 @@ $(function () {
       	}, 1000 );
     }
 	
+	var IAmPlayer = false;
+	function setPlayer() {
+		IAmPlayer = false;
+		for (var i in battlefieldData.Boards) {			
+			if (battlefieldData.Boards[i].CurrentPlayer && battlefieldData.Boards[i].IsMe) IAmPlayer = true; 
+		}
+	}
+	
 	var waitTime = Array(0,5000,5000,5000,7000,10000,15000,20000);		
 	var debugTick = 0;
 	function updateLoop(waitIndex) {
 		
 		console.log('starting loop');
 		
-		for (var i in battlefieldData.Boards) {			
-			if (battlefieldData.Boards[i].CurrentPlayer && battlefieldData.Boards[i].IsMe) var IAmPlayer = true; 
-		}
+		setPlayer();
 		
 		//I'm not the acting player
 		if (IAmPlayer !== true) {
