@@ -334,6 +334,15 @@ $(function () {
 					});		
 					break;
 					
+					case "Advance":					
+					var a = $( ".cell[rank="+(battlefieldData.Events[i].Rank+2)+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
+					var b = $( ".cell[rank="+(battlefieldData.Events[i].Rank-1)+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
+					
+					var c = $(a)[0].innerHTML;					
+					$(a)[0].innerHTML = $(b)[0].innerHTML;
+					$(b)[0].innerHTML = c;					
+					break;
+					
 					case "Swap":					
 					var a = $( ".cell[rank="+battlefieldData.Events[i].Rank+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );
 					var b = $( ".cell[rank="+(battlefieldData.Events[i].Rank-1)+"]", $( ".file[file="+battlefieldData.Events[i].File+"]", ".playingfield-bottom" ) );

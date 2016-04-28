@@ -344,18 +344,40 @@ class GameState
 
 					//determine sorting
 					if ($a < $b) {
-						$Swap = $FileArray[$i-1];
-						$FileArray[$i-1] = $FileArray[$i];
-						$FileArray[$i] = $Swap;
-						$SwapCount++;
 						
-						$this->Events[] = Array(
-							"Action" => "Swap",
-							"Actor" => "Game",
-																			
-							"File" => $FileKey,
-							"Rank" => $i
-						);
+						//If the current piece is part of a Formation, make sure the whole formation moves 
+						//TODO: This assumes the formation is 3 armies long. Check this
+						if ($FileArray[$i]['Type'] == 'Charge') {
+							$Swap = $FileArray[$i-1];
+							$FileArray[$i-1] = $FileArray[$i];
+							$FileArray[$i] = $FileArray[$i+1];	
+							$FileArray[$i+1] = $Swap;
+							
+							$SwapCount++;
+							
+							$this->Events[] = Array(
+								"Action" => "Advance",
+								"Actor"	=> "Game",
+								
+								"File" => $FileKey,
+								"Rank" => $i							
+							);
+						}
+						else {
+						
+							$Swap = $FileArray[$i-1];
+							$FileArray[$i-1] = $FileArray[$i];
+							$FileArray[$i] = $Swap;
+							$SwapCount++;
+							
+							$this->Events[] = Array(
+								"Action" => "Swap",
+								"Actor" => "Game",
+																				
+								"File" => $FileKey,
+								"Rank" => $i
+							);
+						}
 					}
 				}
 			} while ($SwapCount > 0);
@@ -449,6 +471,21 @@ class GameState
 								"File" => $File,
 								"Ranks" => Array($Rank, $Rank+1, $Rank+2)
 							);
+								
+								/*
+								//This doesn't do anything I think
+								
+							//$FormationIndex = $this->GetFirstAvailableFormationIndex(); 	
+							$this->Boards[$this->BoardStatePlayerIndex]['Formations'][] = Array(
+								"Type" => "Normal",								
+								"Color" => $this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Color'],
+								"Files" => Array($File),
+								"Ranks" => Array($Rank, $Rank+1, $Rank+2),
+								"Power" => 5,
+								"Counter" => 1);
+								*/
+							//TODO: Power = Fullpower / 2
+															
 							$Matches++;
 
 							$this->Boards[$this->BoardStatePlayerIndex]['State'][$File][$Rank]['Attack'] = TRUE;
@@ -615,6 +652,33 @@ class GameState
         <span id="delete">X</span>
         <?php
     }
+	
+	function CountdownAndLaunchFormations() {
+				
+		foreach ($this->Boards[$this->BoardStatePlayerIndex]['Formations'] as $FormationIndex => &$Formation) {		
+			$Formation['Counter']--;
+			$this->Events[] = Array("Action"=>"Formation Countdown", "Actor" => "Game",	"FormationID" => $FormationIndex); 
+			$Formation['Power'] += ((10/2) / 1); //TODO: Make this driven by the unit formation's stats  ((FullPower/2) / TotalCountdowns)
+		}
+		
+		foreach ($this->Boards[$this->BoardStatePlayerIndex]['Formations'] as $FormationIndex => $Formation) {
+			if ($Formation['Counter'] <= 0) {
+				$this->Events[] = Array("Action"=>"Formation Attack", "Actor" => "Game", "FormationID" => $FormationIndex);
+			}	
+		}
+	}
+	
+	/*
+	function GetFirstAvailableFormationIndex() {
+		
+		if (count($this->Boards[$this->BoardStatePlayerIndex]['Formations']) == 0) return 0;
+		
+		for ($i == 0; $i < count($this->Boards[$this->BoardStatePlayerIndex]['Formations']); $i++) {
+			if (!isset($this->Boards[$this->BoardStatePlayerIndex]['Formations'][$i])) return $i;	
+		}		
+		return ++$i;
+	}
+	*/
 }
 
 function GameCreateForm() {
@@ -696,6 +760,7 @@ switch ($_POST['action']) {
 
 		if ($Game->Moves['Left'] <= 0) {
 			$Game->SwitchPlayers();
+			//$Game->CountdownAndLaunchFormations(); //TODO: Figure this out later
 		}
 		
 		$Game->BuildCurrentState();
